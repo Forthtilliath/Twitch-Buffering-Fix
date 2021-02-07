@@ -4,15 +4,15 @@ var using = 2;
 var search = /vid.*hls.*(\/hls.*.ts)/;
 
 var countries = {
-	"none": "Default/None",
-	"GL": "Global Server",
-	"US": "United States",
-	"SE": "Sweden",
-	"UK": "United Kingdom",
-	"NL": "Netherlands",
-	"FR": "France",
-	"DE": "Germany",
-	"CZ": "Czech Republic",
+    "none": "Default/None",
+    "GL": "Global Server",
+    "US": "United States",
+    "SE": "Sweden",
+    "UK": "United Kingdom",
+    "NL": "Netherlands",
+    "FR": "France",
+    "DE": "Germany",
+    "CZ": "Czech Republic",
 };
 
 var replacements = [
@@ -43,82 +43,89 @@ var replacements = [
 
 var per_country = {};
 for (var i = 0; i < replacements.length; i++) {
-	var country = replacements[i][0].replace(/^([a-zA-Z]+).*$/,"$1");
-	if (typeof per_country[country] == 'undefined') {
-		per_country[country] = [];
-	}
-	per_country[country].push(i);
+    var country = replacements[i][0].replace(/^([a-zA-Z]+).*$/, "$1");
+    if (typeof per_country[country] == 'undefined') {
+        per_country[country] = [];
+    }
+    per_country[country].push(i);
 }
 
 function updateButton() {
-	var cluster = replacements[using][0];
-	chrome.browserAction.setBadgeText({
-		text: cluster.toString()
-	});
+    var cluster = replacements[using][0];
+    chrome.browserAction.setBadgeText({
+        text: cluster.toString()
+    });
 }
 
 function changeServer(id) {
-	using = parseInt(id);
-	updateButton();
+    using = parseInt(id);
+    updateButton();
 }
 
 function click() {
-	if (using > replacements.length -2)
-		using = 0
-	else
-		using += 1;
-	updateButton();
+    if (using > replacements.length - 2)
+        using = 0
+    else
+        using += 1;
+    updateButton();
 }
 
 function init() {
-	chrome.webRequest.onBeforeRequest.addListener(
-		function(info) {
-			if (info.url.indexOf(".ts") > -1) {
-				var conf;
-				var subject = info.url;
+    chrome.webRequest.onBeforeRequest.addListener(
+        function (info) {
+            if (info.url.indexOf(".ts") > -1) {
+                var conf;
+                var subject = info.url;
 
-				if (using == 0) {
-					return {};
-				}
+                if (using == 0) {
+                    return {};
+                }
 
-				conf = replacements[using][2];
-				subject = subject.replace(search, conf + "$1");
+                conf = replacements[using][2];
+                subject = subject.replace(search, conf + "$1");
 
-				if (subject !== info.url) {
-					return {
-						redirectUrl: subject
-					};
-				}
-			} else
-				return {};
-		}, {
-			urls: [
+                if (subject !== info.url) {
+                    return {
+                        redirectUrl: subject
+                    };
+                }
+            } else
+                return {};
+        }, {
+            urls: [
 				"*://*/*"
 			]
-		}, ["blocking"]
-	);
+        }, ["blocking"]
+    );
 
-	updateButton();
+    updateButton();
 }
 
 function resimple() {
-	if(simple) {
-		chrome.contextMenus.update("toggle", {"title":"Simple Mode"});
-		chrome.browserAction.setPopup({popup: "popup.html"});
-		simple = false;
-	}
-	else {
-		chrome.contextMenus.update("toggle", {"title":"List Mode"});
-		chrome.browserAction.setPopup({popup: ""});
-		simple = true;
-	}
+    if (simple) {
+        chrome.contextMenus.update("toggle", {
+            "title": "Simple Mode"
+        });
+        chrome.browserAction.setPopup({
+            popup: "popup.html"
+        });
+        simple = false;
+    } else {
+        chrome.contextMenus.update("toggle", {
+            "title": "List Mode"
+        });
+        chrome.browserAction.setPopup({
+            popup: ""
+        });
+        simple = true;
+    }
 }
 
 chrome.contextMenus.create({
-	"id": "toggle",
-	"title": "Simple Mode",
-	"contexts": ["all"],
-	"onclick": resimple
+    "id": "toggle",
+    "title": "Simple Mode",
+    "contexts": ["all"],
+    "onclick": resimple
 });
 
 chrome.browserAction.onClicked.addListener(click);

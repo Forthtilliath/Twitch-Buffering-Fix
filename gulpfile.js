@@ -25,7 +25,8 @@ let source = {
     'sass': 'assets/styles/**/',
     'useref': '',
     'js': 'assets/scripts/**/',
-    'fonts': 'assets/fonts/'
+    'fonts': 'assets/fonts/',
+    'racine': ''
 }
 let dest = {
     'svg': 'assets/images/sprites/',
@@ -45,15 +46,18 @@ let filesIn = {
     'useref': '*.html',
     'js': '*.js',
     'css': '*.css',
-    'fonts': '*'
+    'fonts': '*',
+    'racine': '*'
 }
 let fileOut = {
-    'svg': 'buttons.svg'
+    'svg': 'buttons.svg' // Voir pour donner le nom du dossier ou sinon sprite dans le dossier source
 }
+
+let tabWatch = ['sass', 'images']; // Tache à écouter
 
 let jsInIndex = ['popup.js']; // Afin de ne pas le prendre en compte dans les fichiers js
 let tabJs = [dir.dev + source.js + filesIn.js]; // Fichiers js à compresser, par défaut on les prend tous
-let tabRacine = ['manifest.json', 'create_zip.bat']; // Fichiers à copier
+//let tabRacine = ['manifest.json', 'create_zip.bat']; // Fichiers à copier
 
 /***************************************************
  * Taches liées à l'application en elle-même
@@ -153,20 +157,26 @@ gulp.task('js', function () {
 
 // Copie des fonts
 gulp.task('fonts', function () {
-    return gulp.src(dir.dist + dest.fonts + filesIn.fonts)
+    return gulp.src(dir.dev + source.fonts + filesIn.fonts)
         .pipe(gulp.dest(dir.dist + dest.fonts))
 });
 
 // Copie des fichiers à la racine
-gulp.task('racine', function () {
+/*gulp.task('racine', function () {
     let filesToCopy = new Array();
     tabRacine.forEach(function (file) {
         filesToCopy.push(dir.dev + file);
     });
     return gulp.src(filesToCopy)
         .pipe(gulp.dest(dir.dist))
+});*/
+gulp.task('racine', function () {
+    return gulp.src(dir.dev + source.racine + filesIn.racine)
+        .pipe(gulp.dest(dir.dist))
 });
 
+// Permet d'executer create_zip à partir du dossier dist
+// (ca évite d'avoir uniquement le contenu du dossier dist dans le zip)
 gulp.task('archive', function () {
     return cp.exec('call_create_zip.bat');
 });
@@ -187,21 +197,16 @@ gulp.task('app', gulp.series('app_icons', 'app_images'));
 gulp.task('build', gulp.series('svg', 'sass'));
 
 // Tâche dist : Compresse et copie l'ensemble des fichiers pour la distribution
-gulp.task('dist', gulp.series('clean', 'app', 'images', 'useref', 'js', 'fonts', 'racine', 'archive'));
-
-/*gulp.task('dist', function (callback) {
-//gulp.series('clean', 'app', 'images', 'useref', 'js', 'fonts', 'racine', 'archive')
-//gulp.series('clean', gulp.series('app', 'images', 'useref', 'js', 'fonts', 'racine'), 'archive')
-//runSequence(gulp.series('clean'), gulp.series('app', 'images', 'useref', 'js', 'fonts', 'racine'), gulp.series('archive'), callback)
-runSequence(['clean'], ['app', 'images', 'useref', 'js', 'fonts', 'racine'], ['archive'], callback)
-});*/
+gulp.task('dist', gulp.series('clean', 'app', 'images', 'racine', 'useref', 'js', 'fonts', 'archive'));
 
 // Tâche par défaut
 gulp.task('default', gulp.series('build'));
 
 // Tâche "watch"
 gulp.task('watch', function () {
-    //gulp.watch(dir.dev + source.images + filesIn.images, gulp.series('images'));
-    //gulp.watch(dir.svg + sources.svg + filesIn.svg, gulp.series('svg'));
-    //gulp.watch(dir.dev + sources.sass + filesIn.sass, gulp.series('sass'));
+    // Lance un watch pour chaque tache dans le tableau
+    tabWatch.forEach(function (uneTache) {
+        console.log("Démarrage du watch de " + uneTache + "...");
+        gulp.watch(dir.dev + source[uneTache] + filesIn[uneTache], gulp.series(uneTache));
+    });
 });
