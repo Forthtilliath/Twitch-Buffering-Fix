@@ -137,8 +137,8 @@ gulp.task('images', function () {
 gulp.task('useref', function () {
     return gulp.src(dir.dev + source.useref + filesIn.useref)
         .pipe(plugins.useref())
-        .pipe(gulpif(filesIn.js, plugins.uglify())) // pour minifier les fichiers Javascript
-        .pipe(gulpif(filesIn.css, minifyCSS())) // pour minifier les fichiers CSS
+        //.pipe(gulpif(filesIn.js, plugins.uglify())) // pour minifier les fichiers Javascript
+        //.pipe(gulpif(filesIn.css, minifyCSS())) // pour minifier les fichiers CSS
         .pipe(gulp.dest(dir.dist))
 });
 
@@ -148,10 +148,10 @@ gulp.task('js', function () {
         tabJs.push('!' + dir.dev + source.js + js);
     });
     return gulp.src(tabJs)
-        .pipe(plugins.uglify()) // pour minifier les fichiers Javascript
+        /*.pipe(plugins.uglify()) // pour minifier les fichiers Javascript
         .pipe(plugins.rename({
             extname: ".min.js"
-        }))
+        }))*/
         .pipe(gulp.dest(dir.dist + dest.js))
 });
 
@@ -177,8 +177,10 @@ gulp.task('racine', function () {
 
 // Permet d'executer create_zip à partir du dossier dist
 // (ca évite d'avoir uniquement le contenu du dossier dist dans le zip)
-gulp.task('archive', function () {
-    return cp.exec('call_create_zip.bat');
+gulp.task('archive', function (done) {
+    // return cp.exec('call_create_zip.bat');
+    cp.execSync('cd dist && create_zip.bat');
+    done();
 });
 
 
@@ -197,7 +199,7 @@ gulp.task('app', gulp.series('app_icons', 'app_images'));
 gulp.task('build', gulp.series('svg', 'sass'));
 
 // Tâche dist : Compresse et copie l'ensemble des fichiers pour la distribution
-gulp.task('dist', gulp.series('clean', 'app', 'images', 'racine', 'useref', 'js', 'fonts', 'archive'));
+gulp.task('dist', gulp.series('clean', 'app', 'images', 'racine', 'useref', 'fonts', 'js', 'archive'));
 
 // Tâche par défaut
 gulp.task('default', gulp.series('build'));

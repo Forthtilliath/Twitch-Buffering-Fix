@@ -19,20 +19,13 @@ for /f "tokens=2 delims=:," %%z in ('type "!manifest!"^|findstr /l /c:"!chaine!"
 :getZipName
 REM Nom de l'archive
 SET zipName=..\archives\%appName%-v%version%%extension%
-goto :createArchive2
 
-
-:getListFiles
-REM Liste des fichiers à mettre dans l'archive
-SET listFiles=app/icons/*
-SET listFiles=%listFiles% assets/scripts/*
-SET listFiles=%listFiles% assets/styles/*
-SET listFiles=%listFiles% manifest.json
-SET listFiles=%listFiles% popup.html
-
-:createArchive
 REM Création de l'archive
 tar -cf !zipName! !listFiles!
+goto :createArchive7z
 
-:createArchive2
+:createArchiveZip
 tar -cv --exclude=app/images --exclude=create_zip.bat -f !zipName! *
+
+:createArchive7z
+"%PROGRAMFILES%/7-zip/7z" a !zipName! * -x^^!app/images -x^^!create_*.bat
